@@ -85,29 +85,13 @@ export function DesktopMoreMenu({
         if (!buttonRef.current || !containerRef.current) return;
 
         if (!isRotated) {
-            // Normal Mode: Non-rotated, potentially non-fullscreen
-            // Use Viewport Coordinates (getBoundingClientRect) and Portal to Document Body
-            const buttonRect = buttonRef.current.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-
-            const spaceBelow = viewportHeight - buttonRect.bottom - 10;
-            const spaceAbove = buttonRect.top - 10;
-
-            const estimatedMenuHeight = 450;
-            const actualMenuHeight = menuRef.current?.offsetHeight || estimatedMenuHeight;
-
-            const openUpward = spaceBelow < Math.min(actualMenuHeight, 300) && spaceAbove > spaceBelow;
-            const maxHeight = openUpward
-                ? Math.min(spaceAbove, actualMenuHeight)
-                : Math.min(spaceBelow, viewportHeight * 0.7);
-
+            // Normal Mode: Non-rotated (Portrait on Mobile)
+            // Center the menu on screen for better visibility and touch access
             setMenuPosition({
-                top: openUpward
-                    ? buttonRect.top - 10
-                    : buttonRect.bottom + 10,
-                left: buttonRect.right, // Align right edge (transform handled in CSS)
-                maxHeight: `${maxHeight}px`,
-                openUpward: openUpward
+                top: window.innerHeight / 2,
+                left: window.innerWidth / 2,
+                maxHeight: '80vh',
+                openUpward: false
             });
         } else {
             // Rotated Mode: Use Container Coordinates (offset loop) and Portal to Container
@@ -188,18 +172,13 @@ export function DesktopMoreMenu({
             ref={menuRef}
             className={`absolute z-[2147483647] bg-[var(--glass-bg)] backdrop-blur-[25px] saturate-[180%] rounded-[var(--radius-2xl)] border border-[var(--glass-border)] shadow-[var(--shadow-md)] p-1.5 sm:p-2 w-fit min-w-[200px] sm:min-w-[240px] animate-in fade-in zoom-in-95 duration-200 overflow-y-auto`}
             style={{
-                top: isRotated
-                    ? (menuPosition.openUpward ? 'auto' : `${menuPosition.top}px`)
-                    : (menuPosition.openUpward
-                        ? 'auto'
-                        : `${menuPosition.top}px`),
-                bottom: isRotated
-                    ? (menuPosition.openUpward ? `calc(100% - ${menuPosition.top}px + 10px)` : 'auto')
-                    : (menuPosition.openUpward
-                        ? `${window.innerHeight - menuPosition.top}px`
-                        : 'auto'),
+                top: `${menuPosition.top}px`, // Always use absolute top
                 left: `${menuPosition.left}px`,
+                // If not rotated (Centered), translate -50% -50% to center
+                // If rotated (Side), translate -100% 0 (or whatever previous logic was)
+                transform: !isRotated ? 'translate(-50%, -50%)' : 'translateX(-100%)',
                 maxHeight: menuPosition.maxHeight,
+                bottom: 'auto'
             }}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
